@@ -11,6 +11,7 @@ from time import sleep
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.proxy import Proxy, ProxyType
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
@@ -137,8 +138,24 @@ class Twitter_Scraper:
         browser_option.add_argument("--disable-notifications")
         browser_option.add_argument("--disable-popup-blocking")
         browser_option.add_argument("--user-agent={}".format(header))
+        
         if proxy is not None:
             browser_option.add_argument("--proxy-server=%s" % proxy)
+            # Add proxy settings for both HTTP and HTTPS
+            proxy_split = proxy.split("://")
+            if len(proxy_split) > 1:
+                proxy_type = proxy_split[0].lower()
+                proxy_address = proxy_split[1]
+                if proxy_type == "http":
+                    proxy_obj = Proxy({
+                        'proxyType': ProxyType.MANUAL,
+                        'httpProxy': proxy_address,
+                        'sslProxy': proxy_address,
+                        'noProxy': ''
+                    })
+                    capabilities = webdriver.DesiredCapabilities.FIREFOX.copy()
+                    proxy_obj.add_to_capabilities(capabilities)
+                    driver = webdriver.Firefox(capabilities=capabilities)
 
         # For Hiding Browser
         browser_option.add_argument("--headless")
